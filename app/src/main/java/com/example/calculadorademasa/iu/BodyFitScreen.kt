@@ -19,7 +19,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -33,8 +32,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.calculadorademasa.model.BodyFitUiState
 import com.example.calculadorademasa.ui.theme.AzulClaro
 import com.example.calculadorademasa.viewmodel.BodyFitViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
+import com.example.calculadorademasa.R
 
 private val AzulBodyFit = Color(0xFF168AAD)
 private val AzulBoton = Color(0xFF2196F3)
@@ -46,6 +50,17 @@ private val TextoSecundario = Color(0xFF555555)
 private val Fondo = Color(0xFFF8FCFE)
 private val Blanco = Color.White
 private val RojoError = Color(0xFFD32F2F)
+
+private fun formatearNumero(valor: Double?): String {
+    if (valor == null) {
+        return "--"
+    }
+
+    val entero = valor.toInt()
+    val decimal = ((valor * 10).toInt() % 10)
+
+    return "$entero.$decimal"
+}
 
 @Composable
 fun BodyFitScreen(
@@ -91,7 +106,7 @@ fun BodyFitScreen(
 
 @Composable
 fun PantallaCalcular(
-    estado: com.example.calculadorademasa.model.BodyFitUiState,
+    estado: BodyFitUiState,
     viewModel: BodyFitViewModel
 ) {
     EncabezadoCalculadora()
@@ -198,15 +213,10 @@ fun PantallaCalcular(
         ResultadoIMC(
             imc = estado.imc,
             categoria = estado.categoria,
-            interpretacionImc = estado.interpretacionImc,
-            progresoImc = estado.progresoImc,
             pesoMinimo = estado.pesoMinimo,
             pesoMaximo = estado.pesoMaximo,
             aguaLitros = estado.aguaLitros,
             vasosAgua = estado.vasosAgua,
-            vasosConsumidos = estado.vasosConsumidos,
-            vasosFaltantes = estado.vasosFaltantes,
-            progresoHidratacion = estado.progresoHidratacion,
             recomendacion = estado.recomendacion
         )
     }
@@ -240,8 +250,7 @@ fun EncabezadoCalculadora() {
         Text(
             text = "Conoce mejor tus hábitos de salud",
             fontSize = 14.sp,
-            color = TextoSecundario,
-            textAlign = TextAlign.Center
+            color = TextoSecundario
         )
     }
 }
@@ -372,49 +381,36 @@ fun SelectorActividad(
     actividadSeleccionada: String,
     alSeleccionar: (String) -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = "Nivel de actividad",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextoPrincipal
+        OpcionSeleccion(
+            texto = "Sedentario",
+            seleccionado = actividadSeleccionada == "Sedentario",
+            alSeleccionar = {
+                alSeleccionar("Sedentario")
+            },
+            modifier = Modifier.weight(1f)
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        OpcionSeleccion(
+            texto = "Moderado",
+            seleccionado = actividadSeleccionada == "Moderado",
+            alSeleccionar = {
+                alSeleccionar("Moderado")
+            },
+            modifier = Modifier.weight(1f)
+        )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            OpcionSeleccion(
-                texto = "Sedentario",
-                seleccionado = actividadSeleccionada == "Sedentario",
-                alSeleccionar = {
-                    alSeleccionar("Sedentario")
-                },
-                modifier = Modifier.weight(1f)
-            )
-
-            OpcionSeleccion(
-                texto = "Moderado",
-                seleccionado = actividadSeleccionada == "Moderado",
-                alSeleccionar = {
-                    alSeleccionar("Moderado")
-                },
-                modifier = Modifier.weight(1f)
-            )
-
-            OpcionSeleccion(
-                texto = "Activo",
-                seleccionado = actividadSeleccionada == "Activo",
-                alSeleccionar = {
-                    alSeleccionar("Activo")
-                },
-                modifier = Modifier.weight(1f)
-            )
-        }
+        OpcionSeleccion(
+            texto = "Activo",
+            seleccionado = actividadSeleccionada == "Activo",
+            alSeleccionar = {
+                alSeleccionar("Activo")
+            },
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 
@@ -509,17 +505,12 @@ fun CampoAgua(
 
 @Composable
 fun ResultadoIMC(
-    imc: Double,
+    imc: Double?,
     categoria: String,
-    interpretacionImc: String,
-    progresoImc: Float,
     pesoMinimo: Double?,
     pesoMaximo: Double?,
     aguaLitros: Double?,
     vasosAgua: Int?,
-    vasosConsumidos: Int,
-    vasosFaltantes: Int,
-    progresoHidratacion: Float,
     recomendacion: String
 ) {
     Card(
@@ -542,7 +533,7 @@ fun ResultadoIMC(
                 color = AzulBodyFit
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
                 text = "IMC",
@@ -551,7 +542,7 @@ fun ResultadoIMC(
             )
 
             Text(
-                text = java.lang.String.format("%.1f", imc),
+                text = formatearNumero(imc),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextoPrincipal
@@ -564,74 +555,12 @@ fun ResultadoIMC(
                 color = AzulBodyFit
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Text(
-                text = interpretacionImc,
-                fontSize = 13.sp,
-                color = TextoSecundario,
-                lineHeight = 18.sp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Indicador de IMC",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextoPrincipal
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LinearProgressIndicator(
-                progress = {
-                    progresoImc
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp),
-                color = AzulBodyFit,
-                trackColor = Blanco
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "Bajo",
-                    fontSize = 11.sp,
-                    color = TextoSecundario
-                )
-
-                Text(
-                    text = "Normal",
-                    fontSize = 11.sp,
-                    color = TextoSecundario
-                )
-
-                Text(
-                    text = "Sobrepeso",
-                    fontSize = 11.sp,
-                    color = TextoSecundario
-                )
-
-                Text(
-                    text = "Obesidad",
-                    fontSize = 11.sp,
-                    color = TextoSecundario
-                )
-            }
-
             Spacer(modifier = Modifier.height(20.dp))
 
             FilaResultado(
                 titulo = "Peso de referencia",
                 valor = if (pesoMinimo != null && pesoMaximo != null) {
-                    "${java.lang.String.format("%.1f", pesoMinimo)} kg - ${java.lang.String.format("%.1f", pesoMaximo)} kg"
+                    "${formatearNumero(pesoMinimo)} kg - ${formatearNumero(pesoMaximo)} kg"
                 } else {
                     "--"
                 }
@@ -642,60 +571,22 @@ fun ResultadoIMC(
             FilaResultado(
                 titulo = "Agua aproximada",
                 valor = if (aguaLitros != null) {
-                    "${java.lang.String.format("%.1f", aguaLitros)} litros al día"
+                    "${formatearNumero(aguaLitros)} litros al día"
                 } else {
                     "--"
                 }
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Text(
-                text = "Hidratación",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = AzulBodyFit
+            FilaResultado(
+                titulo = "Consumo aproximado",
+                valor = if (vasosAgua != null) {
+                    "Aproximadamente $vasosAgua vasos de agua"
+                } else {
+                    "--"
+                }
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = "$vasosConsumidos de ${vasosAgua ?: 0} vasos",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextoPrincipal
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LinearProgressIndicator(
-                progress = {
-                    progresoHidratacion
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp),
-                color = AzulBodyFit,
-                trackColor = Blanco
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if (vasosFaltantes > 0) {
-                Text(
-                    text = "Te faltan aproximadamente $vasosFaltantes vasos para alcanzar la estimación.",
-                    fontSize = 13.sp,
-                    color = TextoSecundario,
-                    lineHeight = 18.sp
-                )
-            } else {
-                Text(
-                    text = "Has alcanzado la estimación diaria de hidratación.",
-                    fontSize = 13.sp,
-                    color = AzulBodyFit,
-                    fontWeight = FontWeight.Medium
-                )
-            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -750,14 +641,21 @@ fun FilaResultado(
 
 @Composable
 fun PantallaPerfil(
-    estado: com.example.calculadorademasa.model.BodyFitUiState,
+    estado: BodyFitUiState,
     viewModel: BodyFitViewModel
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
+        AvatarPerfil(
+            sexo = estado.sexo
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = "Mi perfil",
+
+
             modifier = Modifier.fillMaxWidth(),
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
@@ -796,8 +694,7 @@ fun PantallaPerfil(
         Spacer(modifier = Modifier.height(16.dp))
 
         TarjetaRecomendaciones(
-            recomendacion = estado.recomendacion,
-            estado = estado
+            recomendacion = estado.recomendacion
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -827,7 +724,7 @@ fun PantallaPerfil(
 
 @Composable
 fun TarjetaPerfil(
-    estado: com.example.calculadorademasa.model.BodyFitUiState
+    estado: BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -905,10 +802,30 @@ fun FilaPerfil(
         )
     }
 }
+@Composable
+fun AvatarPerfil(
+    sexo: String
+) {
+    val avatar = if (sexo == "Mujer") {
+        R.drawable.avatar_mujer
+    } else {
+        R.drawable.avatar_hombre
+    }
 
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(id = avatar),
+            contentDescription = "Avatar de perfil",
+            modifier = Modifier.size(120.dp)
+        )
+    }
+}
 @Composable
 fun TarjetaEstado(
-    estado: com.example.calculadorademasa.model.BodyFitUiState
+    estado: BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -927,19 +844,19 @@ fun TarjetaEstado(
                 color = AzulBodyFit
             )
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Interpretación de tu resultado de IMC",
-                fontSize = 13.sp,
-                color = TextoSecundario
-            )
-
             Spacer(modifier = Modifier.height(12.dp))
 
             if (estado.imc != null) {
                 Text(
-                    text = java.lang.String.format("%.1f", estado.imc),
+                    text = "Interpretación de tu resultado de IMC",
+                    fontSize = 13.sp,
+                    color = TextoSecundario
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Text(
+                    text = formatearNumero(estado.imc),
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextoPrincipal
@@ -955,23 +872,16 @@ fun TarjetaEstado(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = estado.interpretacionImc,
+                    text = when (estado.categoria) {
+                        "Bajo peso" -> "Tu resultado se encuentra por debajo del rango de referencia."
+                        "Peso normal" -> "Tu resultado se encuentra dentro del rango de referencia."
+                        "Sobrepeso" -> "Tu resultado se encuentra por encima del rango de referencia."
+                        "Obesidad" -> "Tu resultado se encuentra en un rango elevado."
+                        else -> "Consulta tu resultado para conocer su interpretación."
+                    },
                     fontSize = 13.sp,
                     color = TextoSecundario,
                     lineHeight = 18.sp
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                LinearProgressIndicator(
-                    progress = {
-                        estado.progresoImc
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(10.dp),
-                    color = AzulBodyFit,
-                    trackColor = Blanco
                 )
             } else {
                 Text(
@@ -986,7 +896,7 @@ fun TarjetaEstado(
 
 @Composable
 fun TarjetaHidratacion(
-    estado: com.example.calculadorademasa.model.BodyFitUiState
+    estado: BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1023,35 +933,50 @@ fun TarjetaHidratacion(
                     color = TextoPrincipal
                 )
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                LinearProgressIndicator(
+                val progreso = if (estado.vasosAgua > 0) {
+                    estado.vasosConsumidos.toFloat() / estado.vasosAgua.toFloat()
+                } else {
+                    0f
+                }
+
+                val progresoSeguro = if (progreso < 0f) {
+                    0f
+                } else if (progreso > 1f) {
+                    1f
+                } else {
+                    progreso
+                }
+
+                androidx.compose.material3.LinearProgressIndicator(
                     progress = {
-                        estado.progresoHidratacion
+                        progresoSeguro
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(10.dp),
+                        .height(8.dp),
                     color = AzulBodyFit,
                     trackColor = Blanco
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                if (estado.vasosFaltantes > 0) {
-                    Text(
-                        text = "Te faltan aproximadamente ${estado.vasosFaltantes} vasos.",
-                        fontSize = 13.sp,
-                        color = TextoSecundario
-                    )
+                val faltantes = if (estado.vasosAgua - estado.vasosConsumidos < 0) {
+                    0
                 } else {
-                    Text(
-                        text = "Has alcanzado la estimación diaria.",
-                        fontSize = 13.sp,
-                        color = AzulBodyFit,
-                        fontWeight = FontWeight.Medium
-                    )
+                    estado.vasosAgua - estado.vasosConsumidos
                 }
+
+                Text(
+                    text = if (faltantes > 0) {
+                        "Te faltan aproximadamente $faltantes vasos para alcanzar la estimación."
+                    } else {
+                        "Has alcanzado o superado la estimación diaria."
+                    },
+                    fontSize = 13.sp,
+                    color = TextoSecundario
+                )
             } else {
                 Text(
                     text = "Realiza el cálculo para obtener una estimación.",
@@ -1065,8 +990,7 @@ fun TarjetaHidratacion(
 
 @Composable
 fun TarjetaRecomendaciones(
-    recomendacion: String,
-    estado: com.example.calculadorademasa.model.BodyFitUiState
+    recomendacion: String
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1089,86 +1013,16 @@ fun TarjetaRecomendaciones(
                 color = AzulBodyFit
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            RecomendacionItem(
-                titulo = "Alimentación",
-                texto = when {
-                    estado.imc == null ->
-                        "Realiza tu cálculo para obtener una orientación relacionada con tu resultado."
-
-                    estado.imc < 18.5 ->
-                        "Procura incluir alimentos variados y suficientes para mantener una alimentación equilibrada."
-
-                    estado.imc < 25.0 ->
-                        "Mantén una alimentación variada que incluya frutas, verduras, proteínas y cereales."
-
-                    estado.imc < 30.0 ->
-                        "Procura mantener porciones equilibradas y aumentar el consumo de alimentos naturales."
-
-                    else ->
-                        "Prioriza alimentos naturales, verduras, frutas y porciones equilibradas."
-                }
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            RecomendacionItem(
-                titulo = "Hidratación",
-                texto = if (estado.vasosAgua != null) {
-                    "Tu estimación es de aproximadamente ${estado.vasosAgua} vasos de agua al día."
-                } else {
-                    "Realiza tu cálculo para conocer una estimación de consumo de agua."
-                }
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            RecomendacionItem(
-                titulo = "Actividad física",
-                texto = when (estado.nivelActividad) {
-                    "Sedentario" ->
-                        "Procura incorporar movimiento durante el día y aumentar gradualmente tu actividad."
-
-                    "Moderado" ->
-                        "Mantén una actividad física regular de acuerdo con tus posibilidades."
-
-                    "Activo" ->
-                        "Continúa con una rutina activa y procura mantener una buena recuperación."
-
-                    else ->
-                        "Mantén hábitos de actividad física adecuados para tu rutina."
-                }
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            RecomendacionItem(
-                titulo = "Peso de referencia",
-                texto = if (
-                    estado.pesoMinimo != null &&
-                    estado.pesoMaximo != null
-                ) {
-                    "Para tu altura, el rango de referencia estimado es de " +
-                            "${java.lang.String.format("%.1f", estado.pesoMinimo)} kg a " +
-                            "${java.lang.String.format("%.1f", estado.pesoMaximo)} kg."
-                } else {
-                    "Realiza tu cálculo para conocer tu rango de referencia."
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (recomendacion != "") {
+            if (recomendacion == "") {
                 Text(
-                    text = "Orientación general",
+                    text = "Realiza tu cálculo para recibir recomendaciones generales.",
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AzulBodyFit
+                    color = TextoSecundario,
+                    lineHeight = 20.sp
                 )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
+            } else {
                 Text(
                     text = recomendacion,
                     fontSize = 14.sp,
@@ -1177,7 +1031,7 @@ fun TarjetaRecomendaciones(
                 )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Las recomendaciones son orientativas y no sustituyen la valoración de un profesional de la salud.",
@@ -1186,32 +1040,6 @@ fun TarjetaRecomendaciones(
                 lineHeight = 17.sp
             )
         }
-    }
-}
-
-@Composable
-fun RecomendacionItem(
-    titulo: String,
-    texto: String
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = titulo,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextoPrincipal
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = texto,
-            fontSize = 13.sp,
-            color = TextoSecundario,
-            lineHeight = 19.sp
-        )
     }
 }
 

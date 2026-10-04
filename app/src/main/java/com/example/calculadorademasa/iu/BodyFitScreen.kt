@@ -1,5 +1,6 @@
 package com.example.calculadorademasa.iu
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +23,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,11 +31,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.calculadorademasa.ui.theme.AzulClaro
 import com.example.calculadorademasa.viewmodel.BodyFitViewModel
 
 private val AzulBodyFit = Color(0xFF168AAD)
 private val AzulBoton = Color(0xFF2196F3)
+private val AzulOscuro = Color(0xFF075985)
 private val CelesteClaro = Color(0xFFE8F7FC)
+private val AzulMuyClaro = Color(0xFFE3F2FD)
 private val TextoPrincipal = Color(0xFF111111)
 private val TextoSecundario = Color(0xFF555555)
 private val Fondo = Color(0xFFF8FCFE)
@@ -47,81 +51,161 @@ fun BodyFitScreen(
     viewModel: BodyFitViewModel,
     modifier: Modifier = Modifier
 ) {
-    val estado by viewModel.uiState.collectAsState()
+    val estado by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(Fondo)
             .safeDrawingPadding()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
     ) {
-        EncabezadoCalculadora()
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        CampoPeso(
-            valor = estado.peso,
-            alCambiar = { viewModel.cambiarPeso(it) }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        CampoAltura(
-            valor = estado.altura,
-            alCambiar = { viewModel.cambiarAltura(it) }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        CampoEdad(
-            valor = estado.edad,
-            alCambiar = { viewModel.cambiarEdad(it) }
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        BotonCalcular(
-            alCalcular = { viewModel.calcular() }
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        if (estado.error != null) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFFFEBEE)
-                ),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text(
-                    text = estado.error!!,
-                    modifier = Modifier.padding(16.dp),
-                    color = RojoError,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            if (estado.pantallaActual == "calcular") {
+                PantallaCalcular(
+                    estado = estado,
+                    viewModel = viewModel
+                )
+            } else {
+                PantallaPerfil(
+                    estado = estado,
+                    viewModel = viewModel
                 )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        if (estado.imc != null) {
-            ResultadoIMC(
-                imc = estado.imc,
-                categoria = estado.categoria,
-                pesoMinimo = estado.pesoMinimo,
-                pesoMaximo = estado.pesoMaximo,
-                aguaLitros = estado.aguaLitros,
-                vasosAgua = estado.vasosAgua,
-                recomendacion = estado.recomendacion
+        BarraNavegacion(
+            pantallaActual = estado.pantallaActual,
+            alSeleccionar = {
+                viewModel.cambiarPantalla(it)
+            }
+        )
+    }
+}
+
+@Composable
+fun PantallaCalcular(
+    estado: com.example.calculadorademasa.model.BodyFitUiState,
+    viewModel: BodyFitViewModel
+) {
+    EncabezadoCalculadora()
+
+    Spacer(modifier = Modifier.height(28.dp))
+
+    CampoPeso(
+        valor = estado.peso,
+        alCambiar = {
+            viewModel.cambiarPeso(it)
+        }
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    CampoAltura(
+        valor = estado.altura,
+        alCambiar = {
+            viewModel.cambiarAltura(it)
+        }
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    CampoEdad(
+        valor = estado.edad,
+        alCambiar = {
+            viewModel.cambiarEdad(it)
+        }
+    )
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    SelectorSexo(
+        sexoSeleccionado = estado.sexo,
+        alSeleccionar = {
+            viewModel.cambiarSexo(it)
+        }
+    )
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    SelectorActividad(
+        actividadSeleccionada = estado.nivelActividad,
+        alSeleccionar = {
+            viewModel.cambiarNivelActividad(it)
+        }
+    )
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    CampoAgua(
+        vasos = estado.vasosConsumidos,
+        alCambiar = {
+            viewModel.cambiarVasosConsumidos(it)
+        }
+    )
+
+    Spacer(modifier = Modifier.height(24.dp))
+
+    Button(
+        onClick = {
+            viewModel.calcular()
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(52.dp),
+        shape = RoundedCornerShape(18.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = AzulBoton,
+            contentColor = Blanco
+        )
+    ) {
+        Text(
+            text = "CALCULAR IMC",
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    if (estado.error != null) {
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFFFEBEE)
+            ),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                text = estado.error,
+                modifier = Modifier.padding(16.dp),
+                color = RojoError,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
     }
+
+    if (estado.imc != null) {
+        ResultadoIMC(
+            imc = estado.imc,
+            categoria = estado.categoria,
+            pesoMinimo = estado.pesoMinimo,
+            pesoMaximo = estado.pesoMaximo,
+            aguaLitros = estado.aguaLitros,
+            vasosAgua = estado.vasosAgua,
+            recomendacion = estado.recomendacion
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
 }
 
 @Composable
@@ -148,7 +232,7 @@ fun EncabezadoCalculadora() {
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-            text = "Calcula tu índice de masa corporal",
+            text = "Conoce mejor tus hábitos de salud",
             fontSize = 14.sp,
             color = TextoSecundario
         )
@@ -210,22 +294,13 @@ fun CampoEntrada(
         onValueChange = alCambiar,
         modifier = Modifier.fillMaxWidth(),
         label = {
-            Text(
-                text = etiqueta,
-                color = TextoSecundario
-            )
+            Text(etiqueta)
         },
         placeholder = {
-            Text(
-                text = ejemplo,
-                color = Color(0xFF999999)
-            )
+            Text(ejemplo)
         },
         suffix = {
-            Text(
-                text = unidad,
-                color = TextoSecundario
-            )
+            Text(unidad)
         },
         singleLine = true,
         shape = RoundedCornerShape(14.dp),
@@ -244,24 +319,144 @@ fun CampoEntrada(
 }
 
 @Composable
-fun BotonCalcular(
-    alCalcular: () -> Unit
+fun SelectorSexo(
+    sexoSeleccionado: String,
+    alSeleccionar: (String) -> Unit
 ) {
-    Button(
-        onClick = alCalcular,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(52.dp),
-        shape = RoundedCornerShape(18.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = AzulBoton,
-            contentColor = Blanco
-        )
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = "CALCULAR IMC",
+            text = "Sexo",
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            fontSize = 15.sp
+            color = TextoPrincipal
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OpcionSeleccion(
+                texto = "Hombre",
+                seleccionado = sexoSeleccionado == "Hombre",
+                alSeleccionar = {
+                    alSeleccionar("Hombre")
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            OpcionSeleccion(
+                texto = "Mujer",
+                seleccionado = sexoSeleccionado == "Mujer",
+                alSeleccionar = {
+                    alSeleccionar("Mujer")
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+fun SelectorActividad(
+    actividadSeleccionada: String,
+    alSeleccionar: (String) -> Unit
+) {
+    Row(Modifier.fillMaxWidth()) {
+        OpcionSeleccion("Sedentario", actividadSeleccionada == "Sedentario", { alSeleccionar("Sedentario") }, Modifier.weight(1f))
+        OpcionSeleccion("Moderado", actividadSeleccionada == "Moderado", { alSeleccionar("Moderado") }, Modifier.weight(1f))
+        OpcionSeleccion("Activo", actividadSeleccionada == "Activo", { alSeleccionar("Activo") }, Modifier.weight(1f))
+    }
+}
+
+@Composable
+fun OpcionSeleccion(
+    texto: String,
+    seleccionado: Boolean,
+    alSeleccionar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = alSeleccionar,
+        modifier = modifier.height(50.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (seleccionado) AzulBodyFit else Blanco,
+            contentColor = if (seleccionado) Blanco else AzulBodyFit
+        ),
+        border = if (!seleccionado) {
+            BorderStroke(
+                width = 1.dp,
+                color = AzulBodyFit
+            )
+        } else {
+            null
+        }
+    ) {
+        Text(
+            text = texto,
+            fontSize = 12.sp,
+            fontWeight = if (seleccionado) {
+                FontWeight.Bold
+            } else {
+                FontWeight.Medium
+            },
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun CampoAgua(
+    vasos: Int,
+    alCambiar: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Consumo de agua",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextoPrincipal
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "¿Cuántos vasos de agua tomas normalmente al día?",
+            fontSize = 13.sp,
+            color = TextoSecundario
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = if (vasos == 0) "" else vasos.toString(),
+            onValueChange = alCambiar,
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = {
+                Text("Vasos al día")
+            },
+            suffix = {
+                Text("vasos")
+            },
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = TextoPrincipal,
+                unfocusedTextColor = TextoPrincipal,
+                focusedContainerColor = Blanco,
+                unfocusedContainerColor = Blanco,
+                focusedBorderColor = AzulBodyFit,
+                unfocusedBorderColor = AzulBodyFit,
+                focusedLabelColor = AzulBodyFit,
+                unfocusedLabelColor = TextoSecundario,
+                cursorColor = AzulBodyFit
+            )
         )
     }
 }
@@ -310,8 +505,6 @@ fun ResultadoIMC(
                 fontWeight = FontWeight.Bold,
                 color = TextoPrincipal
             )
-
-            Spacer(modifier = Modifier.height(4.dp))
 
             Text(
                 text = categoria,
@@ -400,6 +593,365 @@ fun FilaResultado(
             fontWeight = FontWeight.Medium,
             color = TextoPrincipal,
             textAlign = TextAlign.End
+        )
+    }
+}
+
+@Composable
+fun PantallaPerfil(
+    estado: com.example.calculadorademasa.model.BodyFitUiState,
+    viewModel: BodyFitViewModel
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Mi perfil",
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = AzulOscuro,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = "Resumen de tus datos y resultados",
+            modifier = Modifier.fillMaxWidth(),
+            fontSize = 14.sp,
+            color = TextoSecundario,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        TarjetaPerfil(
+            estado = estado
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TarjetaEstado(
+            estado = estado
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TarjetaHidratacion(
+            estado = estado
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TarjetaRecomendaciones(
+            recomendacion = estado.recomendacion
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                viewModel.cambiarPantalla("calcular")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(52.dp),
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AzulBoton,
+                contentColor = Blanco
+            )
+        ) {
+            Text(
+                text = "EDITAR MIS DATOS",
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
+
+@Composable
+fun TarjetaPerfil(
+    estado: com.example.calculadorademasa.model.BodyFitUiState
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Blanco
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = AzulBodyFit
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                text = "Información personal",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = AzulBodyFit
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            FilaPerfil("Edad", if (estado.edad == "") "--" else "${estado.edad} años")
+            FilaPerfil("Sexo", estado.sexo)
+            FilaPerfil("Peso", if (estado.peso == "") "--" else "${estado.peso} kg")
+            FilaPerfil("Altura", if (estado.altura == "") "--" else "${estado.altura} cm")
+            FilaPerfil("Actividad", estado.nivelActividad)
+        }
+    }
+}
+
+@Composable
+fun FilaPerfil(
+    titulo: String,
+    valor: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = titulo,
+            color = TextoSecundario,
+            fontSize = 14.sp
+        )
+
+        Text(
+            text = valor,
+            color = TextoPrincipal,
+            fontWeight = FontWeight.Bold,
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
+fun TarjetaEstado(
+    estado: com.example.calculadorademasa.model.BodyFitUiState
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = CelesteClaro
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                text = "Tu estado",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = AzulBodyFit
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (estado.imc != null) {
+                Text(
+                    text = "IMC",
+                    fontSize = 14.sp,
+                    color = TextoSecundario
+                )
+
+                Text(
+                    text = java.lang.String.format("%.1f", estado.imc),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextoPrincipal
+                )
+
+                Text(
+                    text = estado.categoria,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AzulBodyFit
+                )
+            } else {
+                Text(
+                    text = "Aún no has realizado tu cálculo.",
+                    color = TextoSecundario,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TarjetaHidratacion(
+    estado: com.example.calculadorademasa.model.BodyFitUiState
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AzulMuyClaro
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                text = "Hidratación",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = AzulBodyFit
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Tu consumo habitual: ${estado.vasosConsumidos} vasos al día",
+                fontSize = 14.sp,
+                color = TextoPrincipal
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (estado.vasosAgua != null) {
+                Text(
+                    text = "Estimación BodyFit: ${estado.vasosAgua} vasos al día",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextoPrincipal
+                )
+            } else {
+                Text(
+                    text = "Realiza el cálculo para obtener una estimación.",
+                    fontSize = 14.sp,
+                    color = TextoSecundario
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TarjetaRecomendaciones(
+    recomendacion: String
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Blanco
+        ),
+        border = BorderStroke(
+            width = 1.dp,
+            color = AzulClaro
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp)
+        ) {
+            Text(
+                text = "Recomendaciones",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = AzulBodyFit
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            if (recomendacion == "") {
+                Text(
+                    text = "Realiza tu cálculo para recibir recomendaciones generales.",
+                    fontSize = 14.sp,
+                    color = TextoSecundario,
+                    lineHeight = 20.sp
+                )
+            } else {
+                Text(
+                    text = recomendacion,
+                    fontSize = 14.sp,
+                    color = TextoPrincipal,
+                    lineHeight = 21.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "Las recomendaciones son orientativas y no sustituyen la valoración de un profesional de la salud.",
+                fontSize = 12.sp,
+                color = TextoSecundario,
+                lineHeight = 17.sp
+            )
+        }
+    }
+}
+
+@Composable
+fun BarraNavegacion(
+    pantallaActual: String,
+    alSeleccionar: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Blanco)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        BotonNavegacion(
+            texto = "Calcular",
+            seleccionado = pantallaActual == "calcular",
+            alSeleccionar = {
+                alSeleccionar("calcular")
+            },
+            modifier = Modifier.weight(1f)
+        )
+
+        BotonNavegacion(
+            texto = "Perfil",
+            seleccionado = pantallaActual == "perfil",
+            alSeleccionar = {
+                alSeleccionar("perfil")
+            },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun BotonNavegacion(
+    texto: String,
+    seleccionado: Boolean,
+    alSeleccionar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = alSeleccionar,
+        modifier = modifier.height(46.dp),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (seleccionado) AzulBodyFit else Blanco,
+            contentColor = if (seleccionado) Blanco else AzulBodyFit
+        ),
+        border = if (!seleccionado) {
+            BorderStroke(
+                width = 1.dp,
+                color = AzulBodyFit
+            )
+        } else {
+            null
+        }
+    ) {
+        Text(
+            text = texto,
+            fontWeight = FontWeight.Bold
         )
     }
 }

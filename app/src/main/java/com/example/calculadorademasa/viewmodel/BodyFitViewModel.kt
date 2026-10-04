@@ -33,9 +33,42 @@ class BodyFitViewModel : ViewModel() {
         )
     }
 
+    fun cambiarSexo(sexo: String) {
+        _uiState.value = _uiState.value.copy(
+            sexo = sexo
+        )
+    }
+
     fun cambiarNivelActividad(nivel: String) {
         _uiState.value = _uiState.value.copy(
             nivelActividad = nivel
+        )
+    }
+
+    fun cambiarVasosConsumidos(vasos: String) {
+
+        val cantidad: Int? = try {
+            java.lang.Integer.parseInt(vasos)
+        } catch (e: Exception) {
+            null
+        }
+
+        if (cantidad != null && cantidad >= 0 && cantidad <= 30) {
+            _uiState.value = _uiState.value.copy(
+                vasosConsumidos = cantidad,
+                error = null
+            )
+        } else if (vasos == "") {
+            _uiState.value = _uiState.value.copy(
+                vasosConsumidos = 0,
+                error = null
+            )
+        }
+    }
+
+    fun cambiarPantalla(pantalla: String) {
+        _uiState.value = _uiState.value.copy(
+            pantallaActual = pantalla
         )
     }
 
@@ -76,7 +109,7 @@ class BodyFitViewModel : ViewModel() {
 
         val altura = alturaCm / 100.0
 
-        val imc: Double = peso / (altura * altura)
+        val imc = peso / (altura * altura)
 
         val categoria = when {
             imc < 18.5 -> "Bajo peso"
@@ -85,18 +118,18 @@ class BodyFitViewModel : ViewModel() {
             else -> "Obesidad"
         }
 
-        val pesoMinimo: Double = 18.5 * (altura * altura)
-        val pesoMaximo: Double = 24.9 * (altura * altura)
+        val pesoMinimo = 18.5 * (altura * altura)
+        val pesoMaximo = 24.9 * (altura * altura)
 
-        val factorActividad: Double = when (_uiState.value.nivelActividad) {
+        val factorActividad = when (_uiState.value.nivelActividad) {
             "Sedentario" -> 0.030
             "Moderado" -> 0.033
             "Activo" -> 0.036
             else -> 0.033
         }
 
-        val aguaLitros: Double = peso * factorActividad
-        val vasosAgua: Int = ((aguaLitros / 0.25) + 0.5).toInt()
+        val aguaLitros = peso * factorActividad
+        val vasosAgua = ((aguaLitros / 0.25) + 0.5).toInt()
 
         val recomendacion = when {
             imc < 18.5 ->

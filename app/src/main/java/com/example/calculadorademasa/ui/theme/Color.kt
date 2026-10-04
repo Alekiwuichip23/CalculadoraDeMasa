@@ -2,10 +2,17 @@ package com.example.calculadorademasa.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val AzulBodyFit = Color(0xFF168AAD)
+val AzulBoton = Color(0xFF2196F3)
+val AzulOscuro = Color(0xFF075985)
+val AzulClaro = Color(0xFF90CAF9)
+val AzulMuyClaro = Color(0xFFE3F2FD)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val CelesteClaro = Color(0xFFE8F7FC)
+val FondoBodyFit = Color(0xFFF8FCFE)
+
+val Blanco = Color(0xFFFFFFFF)
+val TextoPrincipal = Color(0xFF111111)
+val TextoSecundario = Color(0xFF555555)
+
+val RojoError = Color(0xFFD32F2F)

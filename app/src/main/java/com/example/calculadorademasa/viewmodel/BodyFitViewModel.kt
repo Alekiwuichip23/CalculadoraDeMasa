@@ -48,7 +48,6 @@ class BodyFitViewModel : ViewModel() {
     }
 
     fun cambiarVasosConsumidos(vasos: String) {
-
         val cantidad: Int? = try {
             java.lang.Integer.parseInt(vasos)
         } catch (e: Exception) {

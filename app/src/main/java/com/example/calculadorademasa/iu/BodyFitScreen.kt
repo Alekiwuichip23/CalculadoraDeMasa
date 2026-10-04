@@ -796,7 +796,8 @@ fun PantallaPerfil(
         Spacer(modifier = Modifier.height(16.dp))
 
         TarjetaRecomendaciones(
-            recomendacion = estado.recomendacion
+            recomendacion = estado.recomendacion,
+            estado = estado
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -1064,7 +1065,8 @@ fun TarjetaHidratacion(
 
 @Composable
 fun TarjetaRecomendaciones(
-    recomendacion: String
+    recomendacion: String,
+    estado: com.example.calculadorademasa.model.BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1087,16 +1089,86 @@ fun TarjetaRecomendaciones(
                 color = AzulBodyFit
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            if (recomendacion == "") {
+            RecomendacionItem(
+                titulo = "Alimentación",
+                texto = when {
+                    estado.imc == null ->
+                        "Realiza tu cálculo para obtener una orientación relacionada con tu resultado."
+
+                    estado.imc < 18.5 ->
+                        "Procura incluir alimentos variados y suficientes para mantener una alimentación equilibrada."
+
+                    estado.imc < 25.0 ->
+                        "Mantén una alimentación variada que incluya frutas, verduras, proteínas y cereales."
+
+                    estado.imc < 30.0 ->
+                        "Procura mantener porciones equilibradas y aumentar el consumo de alimentos naturales."
+
+                    else ->
+                        "Prioriza alimentos naturales, verduras, frutas y porciones equilibradas."
+                }
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            RecomendacionItem(
+                titulo = "Hidratación",
+                texto = if (estado.vasosAgua != null) {
+                    "Tu estimación es de aproximadamente ${estado.vasosAgua} vasos de agua al día."
+                } else {
+                    "Realiza tu cálculo para conocer una estimación de consumo de agua."
+                }
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            RecomendacionItem(
+                titulo = "Actividad física",
+                texto = when (estado.nivelActividad) {
+                    "Sedentario" ->
+                        "Procura incorporar movimiento durante el día y aumentar gradualmente tu actividad."
+
+                    "Moderado" ->
+                        "Mantén una actividad física regular de acuerdo con tus posibilidades."
+
+                    "Activo" ->
+                        "Continúa con una rutina activa y procura mantener una buena recuperación."
+
+                    else ->
+                        "Mantén hábitos de actividad física adecuados para tu rutina."
+                }
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            RecomendacionItem(
+                titulo = "Peso de referencia",
+                texto = if (
+                    estado.pesoMinimo != null &&
+                    estado.pesoMaximo != null
+                ) {
+                    "Para tu altura, el rango de referencia estimado es de " +
+                            "${java.lang.String.format("%.1f", estado.pesoMinimo)} kg a " +
+                            "${java.lang.String.format("%.1f", estado.pesoMaximo)} kg."
+                } else {
+                    "Realiza tu cálculo para conocer tu rango de referencia."
+                }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (recomendacion != "") {
                 Text(
-                    text = "Realiza tu cálculo para recibir recomendaciones generales.",
+                    text = "Orientación general",
                     fontSize = 14.sp,
-                    color = TextoSecundario,
-                    lineHeight = 20.sp
+                    fontWeight = FontWeight.Bold,
+                    color = AzulBodyFit
                 )
-            } else {
+
+                Spacer(modifier = Modifier.height(6.dp))
+
                 Text(
                     text = recomendacion,
                     fontSize = 14.sp,
@@ -1105,7 +1177,7 @@ fun TarjetaRecomendaciones(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Text(
                 text = "Las recomendaciones son orientativas y no sustituyen la valoración de un profesional de la salud.",
@@ -1114,6 +1186,32 @@ fun TarjetaRecomendaciones(
                 lineHeight = 17.sp
             )
         }
+    }
+}
+
+@Composable
+fun RecomendacionItem(
+    titulo: String,
+    texto: String
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = titulo,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextoPrincipal
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = texto,
+            fontSize = 13.sp,
+            color = TextoSecundario,
+            lineHeight = 19.sp
+        )
     }
 }
 

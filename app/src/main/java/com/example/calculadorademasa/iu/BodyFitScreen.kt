@@ -1,6 +1,7 @@
 package com.example.calculadorademasa.iu
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -27,40 +30,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.calculadorademasa.model.BodyFitUiState
-import com.example.calculadorademasa.ui.theme.AzulClaro
-import com.example.calculadorademasa.viewmodel.BodyFitViewModel
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
-import androidx.compose.ui.res.painterResource
 import com.example.calculadorademasa.R
-
-private val AzulBodyFit = Color(0xFF168AAD)
-private val AzulBoton = Color(0xFF2196F3)
-private val AzulOscuro = Color(0xFF075985)
-private val CelesteClaro = Color(0xFFE8F7FC)
-private val AzulMuyClaro = Color(0xFFE3F2FD)
-private val TextoPrincipal = Color(0xFF111111)
-private val TextoSecundario = Color(0xFF555555)
-private val Fondo = Color(0xFFF8FCFE)
-private val Blanco = Color.White
-private val RojoError = Color(0xFFD32F2F)
-
-private fun formatearNumero(valor: Double?): String {
-    if (valor == null) {
-        return "--"
-    }
-
-    val entero = valor.toInt()
-    val decimal = ((valor * 10).toInt() % 10)
-
-    return "$entero.$decimal"
-}
+import com.example.calculadorademasa.model.BodyFitUiState
+import com.example.calculadorademasa.ui.theme.AzulBodyFit
+import com.example.calculadorademasa.ui.theme.AzulBoton
+import com.example.calculadorademasa.ui.theme.AzulClaro
+import com.example.calculadorademasa.ui.theme.AzulMuyClaro
+import com.example.calculadorademasa.ui.theme.AzulOscuro
+import com.example.calculadorademasa.ui.theme.Blanco
+import com.example.calculadorademasa.ui.theme.CelesteClaro
+import com.example.calculadorademasa.ui.theme.FondoBodyFit
+import com.example.calculadorademasa.ui.theme.RojoError
+import com.example.calculadorademasa.ui.theme.TextoPrincipal
+import com.example.calculadorademasa.ui.theme.TextoSecundario
+import com.example.calculadorademasa.viewmodel.BodyFitViewModel
 
 @Composable
 fun BodyFitScreen(
@@ -72,7 +61,7 @@ fun BodyFitScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Fondo)
+            .background(FondoBodyFit)
             .safeDrawingPadding()
     ) {
         Column(
@@ -85,12 +74,18 @@ fun BodyFitScreen(
             if (estado.pantallaActual == "calcular") {
                 PantallaCalcular(
                     estado = estado,
-                    viewModel = viewModel
+                    alCambiarPeso = viewModel::cambiarPeso,
+                    alCambiarAltura = viewModel::cambiarAltura,
+                    alCambiarEdad = viewModel::cambiarEdad,
+                    alCambiarSexo = viewModel::cambiarSexo,
+                    alCambiarActividad = viewModel::cambiarNivelActividad,
+                    alCambiarVasos = viewModel::cambiarVasosConsumidos,
+                    alCalcular = viewModel::calcular
                 )
             } else {
                 PantallaPerfil(
                     estado = estado,
-                    viewModel = viewModel
+                    alEditar = { viewModel.cambiarPantalla("calcular") }
                 )
             }
         }
@@ -107,7 +102,13 @@ fun BodyFitScreen(
 @Composable
 fun PantallaCalcular(
     estado: BodyFitUiState,
-    viewModel: BodyFitViewModel
+    alCambiarPeso: (String) -> Unit,
+    alCambiarAltura: (String) -> Unit,
+    alCambiarEdad: (String) -> Unit,
+    alCambiarSexo: (String) -> Unit,
+    alCambiarActividad: (String) -> Unit,
+    alCambiarVasos: (String) -> Unit,
+    alCalcular: () -> Unit
 ) {
     EncabezadoCalculadora()
 
@@ -115,62 +116,48 @@ fun PantallaCalcular(
 
     CampoPeso(
         valor = estado.peso,
-        alCambiar = {
-            viewModel.cambiarPeso(it)
-        }
+        alCambiar = alCambiarPeso
     )
 
     Spacer(modifier = Modifier.height(16.dp))
 
     CampoAltura(
         valor = estado.altura,
-        alCambiar = {
-            viewModel.cambiarAltura(it)
-        }
+        alCambiar = alCambiarAltura
     )
 
     Spacer(modifier = Modifier.height(16.dp))
 
     CampoEdad(
         valor = estado.edad,
-        alCambiar = {
-            viewModel.cambiarEdad(it)
-        }
+        alCambiar = alCambiarEdad
     )
 
     Spacer(modifier = Modifier.height(20.dp))
 
     SelectorSexo(
         sexoSeleccionado = estado.sexo,
-        alSeleccionar = {
-            viewModel.cambiarSexo(it)
-        }
+        alSeleccionar = alCambiarSexo
     )
 
     Spacer(modifier = Modifier.height(20.dp))
 
     SelectorActividad(
         actividadSeleccionada = estado.nivelActividad,
-        alSeleccionar = {
-            viewModel.cambiarNivelActividad(it)
-        }
+        alSeleccionar = alCambiarActividad
     )
 
     Spacer(modifier = Modifier.height(20.dp))
 
     CampoAgua(
-        vasos = estado.vasosConsumidos,
-        alCambiar = {
-            viewModel.cambiarVasosConsumidos(it)
-        }
+        valor = estado.vasosConsumidosEntrada,
+        alCambiar = alCambiarVasos
     )
 
     Spacer(modifier = Modifier.height(24.dp))
 
     Button(
-        onClick = {
-            viewModel.calcular()
-        },
+        onClick = alCalcular,
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp),
@@ -211,12 +198,11 @@ fun PantallaCalcular(
 
     if (estado.imc != null) {
         ResultadoIMC(
-            imc = estado.imc,
+            imcTexto = estado.imcTexto,
             categoria = estado.categoria,
-            pesoMinimo = estado.pesoMinimo,
-            pesoMaximo = estado.pesoMaximo,
-            aguaLitros = estado.aguaLitros,
-            vasosAgua = estado.vasosAgua,
+            rangoPesoTexto = estado.rangoPesoTexto,
+            aguaTexto = estado.aguaTexto,
+            vasosAguaTexto = estado.vasosAguaTexto,
             recomendacion = estado.recomendacion
         )
     }
@@ -453,7 +439,7 @@ fun OpcionSeleccion(
 
 @Composable
 fun CampoAgua(
-    vasos: Int,
+    valor: String,
     alCambiar: (String) -> Unit
 ) {
     Column(
@@ -477,7 +463,7 @@ fun CampoAgua(
         Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
-            value = if (vasos == 0) "" else vasos.toString(),
+            value = valor,
             onValueChange = alCambiar,
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
@@ -505,12 +491,11 @@ fun CampoAgua(
 
 @Composable
 fun ResultadoIMC(
-    imc: Double?,
+    imcTexto: String,
     categoria: String,
-    pesoMinimo: Double?,
-    pesoMaximo: Double?,
-    aguaLitros: Double?,
-    vasosAgua: Int?,
+    rangoPesoTexto: String,
+    aguaTexto: String,
+    vasosAguaTexto: String,
     recomendacion: String
 ) {
     Card(
@@ -542,7 +527,7 @@ fun ResultadoIMC(
             )
 
             Text(
-                text = formatearNumero(imc),
+                text = imcTexto,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextoPrincipal
@@ -559,33 +544,21 @@ fun ResultadoIMC(
 
             FilaResultado(
                 titulo = "Peso de referencia",
-                valor = if (pesoMinimo != null && pesoMaximo != null) {
-                    "${formatearNumero(pesoMinimo)} kg - ${formatearNumero(pesoMaximo)} kg"
-                } else {
-                    "--"
-                }
+                valor = rangoPesoTexto
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             FilaResultado(
                 titulo = "Agua aproximada",
-                valor = if (aguaLitros != null) {
-                    "${formatearNumero(aguaLitros)} litros al día"
-                } else {
-                    "--"
-                }
+                valor = aguaTexto
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             FilaResultado(
                 titulo = "Consumo aproximado",
-                valor = if (vasosAgua != null) {
-                    "Aproximadamente $vasosAgua vasos de agua"
-                } else {
-                    "--"
-                }
+                valor = vasosAguaTexto
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -642,7 +615,7 @@ fun FilaResultado(
 @Composable
 fun PantallaPerfil(
     estado: BodyFitUiState,
-    viewModel: BodyFitViewModel
+    alEditar: () -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -700,9 +673,7 @@ fun PantallaPerfil(
         Spacer(modifier = Modifier.height(20.dp))
 
         Button(
-            onClick = {
-                viewModel.cambiarPantalla("calcular")
-            },
+            onClick = alEditar,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
@@ -751,7 +722,7 @@ fun TarjetaPerfil(
 
             FilaPerfil(
                 titulo = "Edad",
-                valor = if (estado.edad == "") "--" else "${estado.edad} años"
+                valor = estado.edadPerfilTexto
             )
 
             FilaPerfil(
@@ -761,12 +732,12 @@ fun TarjetaPerfil(
 
             FilaPerfil(
                 titulo = "Peso",
-                valor = if (estado.peso == "") "--" else "${estado.peso} kg"
+                valor = estado.pesoPerfilTexto
             )
 
             FilaPerfil(
                 titulo = "Altura",
-                valor = if (estado.altura == "") "--" else "${estado.altura} cm"
+                valor = estado.alturaPerfilTexto
             )
 
             FilaPerfil(
@@ -856,7 +827,7 @@ fun TarjetaEstado(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = formatearNumero(estado.imc),
+                    text = estado.imcTexto,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextoPrincipal
@@ -872,13 +843,7 @@ fun TarjetaEstado(
                 Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
-                    text = when (estado.categoria) {
-                        "Bajo peso" -> "Tu resultado se encuentra por debajo del rango de referencia."
-                        "Peso normal" -> "Tu resultado se encuentra dentro del rango de referencia."
-                        "Sobrepeso" -> "Tu resultado se encuentra por encima del rango de referencia."
-                        "Obesidad" -> "Tu resultado se encuentra en un rango elevado."
-                        else -> "Consulta tu resultado para conocer su interpretación."
-                    },
+                    text = estado.interpretacionImc,
                     fontSize = 13.sp,
                     color = TextoSecundario,
                     lineHeight = 18.sp
@@ -918,7 +883,7 @@ fun TarjetaHidratacion(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Tu consumo habitual: ${estado.vasosConsumidos} vasos al día",
+                text = estado.consumoHabitualTexto,
                 fontSize = 14.sp,
                 color = TextoPrincipal
             )
@@ -927,7 +892,7 @@ fun TarjetaHidratacion(
 
             if (estado.vasosAgua != null) {
                 Text(
-                    text = "Estimación BodyFit: ${estado.vasosAgua} vasos al día",
+                    text = estado.estimacionVasosTexto,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextoPrincipal
@@ -935,24 +900,8 @@ fun TarjetaHidratacion(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val progreso = if (estado.vasosAgua > 0) {
-                    estado.vasosConsumidos.toFloat() / estado.vasosAgua.toFloat()
-                } else {
-                    0f
-                }
-
-                val progresoSeguro = if (progreso < 0f) {
-                    0f
-                } else if (progreso > 1f) {
-                    1f
-                } else {
-                    progreso
-                }
-
-                androidx.compose.material3.LinearProgressIndicator(
-                    progress = {
-                        progresoSeguro
-                    },
+                LinearProgressIndicator(
+                    progress = { estado.progresoHidratacion },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp),
@@ -962,24 +911,14 @@ fun TarjetaHidratacion(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                val faltantes = if (estado.vasosAgua - estado.vasosConsumidos < 0) {
-                    0
-                } else {
-                    estado.vasosAgua - estado.vasosConsumidos
-                }
-
                 Text(
-                    text = if (faltantes > 0) {
-                        "Te faltan aproximadamente $faltantes vasos para alcanzar la estimación."
-                    } else {
-                        "Has alcanzado o superado la estimación diaria."
-                    },
+                    text = estado.mensajeHidratacion,
                     fontSize = 13.sp,
                     color = TextoSecundario
                 )
             } else {
                 Text(
-                    text = "Realiza el cálculo para obtener una estimación.",
+                    text = estado.mensajeHidratacion,
                     fontSize = 14.sp,
                     color = TextoSecundario
                 )
@@ -1015,21 +954,12 @@ fun TarjetaRecomendaciones(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            if (recomendacion == "") {
-                Text(
-                    text = "Realiza tu cálculo para recibir recomendaciones generales.",
-                    fontSize = 14.sp,
-                    color = TextoSecundario,
-                    lineHeight = 20.sp
-                )
-            } else {
-                Text(
-                    text = recomendacion,
-                    fontSize = 14.sp,
-                    color = TextoPrincipal,
-                    lineHeight = 21.sp
-                )
-            }
+            Text(
+                text = recomendacion,
+                fontSize = 14.sp,
+                color = TextoPrincipal,
+                lineHeight = 21.sp
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 

@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.calculadorademasa.model.BodyFitUiState
 import com.example.calculadorademasa.ui.theme.AzulClaro
 import com.example.calculadorademasa.viewmodel.BodyFitViewModel
 
@@ -65,10 +64,7 @@ fun BodyFitScreen(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(
-                    horizontal = 24.dp,
-                    vertical = 20.dp
-                ),
+                .padding(horizontal = 24.dp, vertical = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (estado.pantallaActual == "calcular") {
@@ -95,7 +91,7 @@ fun BodyFitScreen(
 
 @Composable
 fun PantallaCalcular(
-    estado: BodyFitUiState,
+    estado: com.example.calculadorademasa.model.BodyFitUiState,
     viewModel: BodyFitViewModel
 ) {
     EncabezadoCalculadora()
@@ -202,10 +198,15 @@ fun PantallaCalcular(
         ResultadoIMC(
             imc = estado.imc,
             categoria = estado.categoria,
+            interpretacionImc = estado.interpretacionImc,
+            progresoImc = estado.progresoImc,
             pesoMinimo = estado.pesoMinimo,
             pesoMaximo = estado.pesoMaximo,
             aguaLitros = estado.aguaLitros,
             vasosAgua = estado.vasosAgua,
+            vasosConsumidos = estado.vasosConsumidos,
+            vasosFaltantes = estado.vasosFaltantes,
+            progresoHidratacion = estado.progresoHidratacion,
             recomendacion = estado.recomendacion
         )
     }
@@ -239,7 +240,8 @@ fun EncabezadoCalculadora() {
         Text(
             text = "Conoce mejor tus hábitos de salud",
             fontSize = 14.sp,
-            color = TextoSecundario
+            color = TextoSecundario,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -384,7 +386,7 @@ fun SelectorActividad(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             OpcionSeleccion(
                 texto = "Sedentario",
@@ -507,12 +509,17 @@ fun CampoAgua(
 
 @Composable
 fun ResultadoIMC(
-    imc: Double?,
+    imc: Double,
     categoria: String,
+    interpretacionImc: String,
+    progresoImc: Float,
     pesoMinimo: Double?,
     pesoMaximo: Double?,
     aguaLitros: Double?,
     vasosAgua: Int?,
+    vasosConsumidos: Int,
+    vasosFaltantes: Int,
+    progresoHidratacion: Float,
     recomendacion: String
 ) {
     Card(
@@ -535,7 +542,7 @@ fun ResultadoIMC(
                 color = AzulBodyFit
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "IMC",
@@ -544,7 +551,7 @@ fun ResultadoIMC(
             )
 
             Text(
-                text = java.lang.String.format("%.1f", imc ?: 0.0),
+                text = java.lang.String.format("%.1f", imc),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextoPrincipal
@@ -556,6 +563,68 @@ fun ResultadoIMC(
                 fontWeight = FontWeight.Bold,
                 color = AzulBodyFit
             )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = interpretacionImc,
+                fontSize = 13.sp,
+                color = TextoSecundario,
+                lineHeight = 18.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Indicador de IMC",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextoPrincipal
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LinearProgressIndicator(
+                progress = {
+                    progresoImc
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(10.dp),
+                color = AzulBodyFit,
+                trackColor = Blanco
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Bajo",
+                    fontSize = 11.sp,
+                    color = TextoSecundario
+                )
+
+                Text(
+                    text = "Normal",
+                    fontSize = 11.sp,
+                    color = TextoSecundario
+                )
+
+                Text(
+                    text = "Sobrepeso",
+                    fontSize = 11.sp,
+                    color = TextoSecundario
+                )
+
+                Text(
+                    text = "Obesidad",
+                    fontSize = 11.sp,
+                    color = TextoSecundario
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -579,16 +648,54 @@ fun ResultadoIMC(
                 }
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            FilaResultado(
-                titulo = "Consumo aproximado",
-                valor = if (vasosAgua != null) {
-                    "Aproximadamente $vasosAgua vasos de agua"
-                } else {
-                    "--"
-                }
+            Text(
+                text = "Hidratación",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = AzulBodyFit
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "$vasosConsumidos de ${vasosAgua ?: 0} vasos",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextoPrincipal
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LinearProgressIndicator(
+                progress = {
+                    progresoHidratacion
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(10.dp),
+                color = AzulBodyFit,
+                trackColor = Blanco
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (vasosFaltantes > 0) {
+                Text(
+                    text = "Te faltan aproximadamente $vasosFaltantes vasos para alcanzar la estimación.",
+                    fontSize = 13.sp,
+                    color = TextoSecundario,
+                    lineHeight = 18.sp
+                )
+            } else {
+                Text(
+                    text = "Has alcanzado la estimación diaria de hidratación.",
+                    fontSize = 13.sp,
+                    color = AzulBodyFit,
+                    fontWeight = FontWeight.Medium
+                )
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -643,7 +750,7 @@ fun FilaResultado(
 
 @Composable
 fun PantallaPerfil(
-    estado: BodyFitUiState,
+    estado: com.example.calculadorademasa.model.BodyFitUiState,
     viewModel: BodyFitViewModel
 ) {
     Column(
@@ -719,7 +826,7 @@ fun PantallaPerfil(
 
 @Composable
 fun TarjetaPerfil(
-    estado: BodyFitUiState
+    estado: com.example.calculadorademasa.model.BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -746,11 +853,7 @@ fun TarjetaPerfil(
 
             FilaPerfil(
                 titulo = "Edad",
-                valor = if (estado.edad == "") {
-                    "--"
-                } else {
-                    "${estado.edad} años"
-                }
+                valor = if (estado.edad == "") "--" else "${estado.edad} años"
             )
 
             FilaPerfil(
@@ -760,20 +863,12 @@ fun TarjetaPerfil(
 
             FilaPerfil(
                 titulo = "Peso",
-                valor = if (estado.peso == "") {
-                    "--"
-                } else {
-                    "${estado.peso} kg"
-                }
+                valor = if (estado.peso == "") "--" else "${estado.peso} kg"
             )
 
             FilaPerfil(
                 titulo = "Altura",
-                valor = if (estado.altura == "") {
-                    "--"
-                } else {
-                    "${estado.altura} cm"
-                }
+                valor = if (estado.altura == "") "--" else "${estado.altura} cm"
             )
 
             FilaPerfil(
@@ -812,7 +907,7 @@ fun FilaPerfil(
 
 @Composable
 fun TarjetaEstado(
-    estado: BodyFitUiState
+    estado: com.example.calculadorademasa.model.BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -839,16 +934,9 @@ fun TarjetaEstado(
                 color = TextoSecundario
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             if (estado.imc != null) {
-
-                Text(
-                    text = "IMC",
-                    fontSize = 14.sp,
-                    color = TextoSecundario
-                )
-
                 Text(
                     text = java.lang.String.format("%.1f", estado.imc),
                     fontSize = 32.sp,
@@ -858,68 +946,33 @@ fun TarjetaEstado(
 
                 Text(
                     text = estado.categoria,
-                    fontSize = 17.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = AzulBodyFit
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
                     text = estado.interpretacionImc,
-                    fontSize = 14.sp,
-                    color = TextoSecundario,
-                    lineHeight = 20.sp
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Referencia del IMC",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextoPrincipal
+                    color = TextoSecundario,
+                    lineHeight = 18.sp
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                BarraProgreso(
-                    progreso = estado.progresoImc
+                LinearProgressIndicator(
+                    progress = {
+                        estado.progresoImc
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(10.dp),
+                    color = AzulBodyFit,
+                    trackColor = Blanco
                 )
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Bajo",
-                        fontSize = 11.sp,
-                        color = TextoSecundario
-                    )
-
-                    Text(
-                        text = "Normal",
-                        fontSize = 11.sp,
-                        color = TextoSecundario
-                    )
-
-                    Text(
-                        text = "Sobrepeso",
-                        fontSize = 11.sp,
-                        color = TextoSecundario
-                    )
-
-                    Text(
-                        text = "Obesidad",
-                        fontSize = 11.sp,
-                        color = TextoSecundario
-                    )
-                }
-
             } else {
-
                 Text(
                     text = "Aún no has realizado tu cálculo.",
                     color = TextoSecundario,
@@ -931,22 +984,8 @@ fun TarjetaEstado(
 }
 
 @Composable
-fun BarraProgreso(
-    progreso: Float
-) {
-    LinearProgressIndicator(
-        progress = { progreso },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(10.dp),
-        color = AzulBodyFit,
-        trackColor = Blanco
-    )
-}
-
-@Composable
 fun TarjetaHidratacion(
-    estado: BodyFitUiState
+    estado: com.example.calculadorademasa.model.BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -976,7 +1015,6 @@ fun TarjetaHidratacion(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (estado.vasosAgua != null) {
-
                 Text(
                     text = "Estimación BodyFit: ${estado.vasosAgua} vasos al día",
                     fontSize = 14.sp,
@@ -984,32 +1022,36 @@ fun TarjetaHidratacion(
                     color = TextoPrincipal
                 )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                BarraProgreso(
-                    progreso = estado.progresoHidratacion
+                LinearProgressIndicator(
+                    progress = {
+                        estado.progresoHidratacion
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(10.dp),
+                    color = AzulBodyFit,
+                    trackColor = Blanco
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 if (estado.vasosFaltantes > 0) {
                     Text(
-                        text = "Te faltan aproximadamente ${estado.vasosFaltantes} vasos para alcanzar la estimación.",
+                        text = "Te faltan aproximadamente ${estado.vasosFaltantes} vasos.",
                         fontSize = 13.sp,
-                        color = TextoSecundario,
-                        lineHeight = 18.sp
+                        color = TextoSecundario
                     )
                 } else {
                     Text(
-                        text = "Has alcanzado la estimación diaria de BodyFit.",
+                        text = "Has alcanzado la estimación diaria.",
                         fontSize = 13.sp,
-                        color = TextoSecundario,
-                        lineHeight = 18.sp
+                        color = AzulBodyFit,
+                        fontWeight = FontWeight.Medium
                     )
                 }
-
             } else {
-
                 Text(
                     text = "Realiza el cálculo para obtener una estimación.",
                     fontSize = 14.sp,
@@ -1084,10 +1126,7 @@ fun BarraNavegacion(
         modifier = Modifier
             .fillMaxWidth()
             .background(Blanco)
-            .padding(
-                horizontal = 16.dp,
-                vertical = 10.dp
-            ),
+            .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         BotonNavegacion(

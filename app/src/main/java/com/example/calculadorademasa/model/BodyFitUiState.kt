@@ -11,11 +11,16 @@ data class BodyFitUiState(
 
     val imc: Double? = null,
     val categoria: String = "",
+    val interpretacionImc: String = "",
+    val progresoImc: Float = 0f,
+
     val pesoMinimo: Double? = null,
     val pesoMaximo: Double? = null,
 
     val aguaLitros: Double? = null,
     val vasosAgua: Int? = null,
+    val vasosFaltantes: Int = 0,
+    val progresoHidratacion: Float = 0f,
 
     val recomendacion: String = "",
     val error: String? = null

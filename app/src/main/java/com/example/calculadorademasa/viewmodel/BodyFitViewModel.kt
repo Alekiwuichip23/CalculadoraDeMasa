@@ -35,13 +35,15 @@ class BodyFitViewModel : ViewModel() {
 
     fun cambiarSexo(sexo: String) {
         _uiState.value = _uiState.value.copy(
-            sexo = sexo
+            sexo = sexo,
+            error = null
         )
     }
 
     fun cambiarNivelActividad(nivel: String) {
         _uiState.value = _uiState.value.copy(
-            nivelActividad = nivel
+            nivelActividad = nivel,
+            error = null
         )
     }
 
@@ -118,6 +120,30 @@ class BodyFitViewModel : ViewModel() {
             else -> "Obesidad"
         }
 
+        val interpretacionImc = when {
+            imc < 18.5 ->
+                "Tu resultado se encuentra por debajo del rango de referencia."
+
+            imc < 25.0 ->
+                "Tu resultado se encuentra dentro del rango de referencia."
+
+            imc < 30.0 ->
+                "Tu resultado se encuentra por encima del rango de referencia."
+
+            else ->
+                "Tu resultado se encuentra en un rango elevado."
+        }
+
+        var progresoImc = (imc - 15.0) / 25.0
+
+        if (progresoImc < 0.0) {
+            progresoImc = 0.0
+        }
+
+        if (progresoImc > 1.0) {
+            progresoImc = 1.0
+        }
+
         val pesoMinimo = 18.5 * (altura * altura)
         val pesoMaximo = 24.9 * (altura * altura)
 
@@ -129,7 +155,30 @@ class BodyFitViewModel : ViewModel() {
         }
 
         val aguaLitros = peso * factorActividad
+
         val vasosAgua = ((aguaLitros / 0.25) + 0.5).toInt()
+
+        val vasosConsumidos = _uiState.value.vasosConsumidos
+
+        var vasosFaltantes = vasosAgua - vasosConsumidos
+
+        if (vasosFaltantes < 0) {
+            vasosFaltantes = 0
+        }
+
+        var progresoHidratacion = if (vasosAgua > 0) {
+            vasosConsumidos.toFloat() / vasosAgua.toFloat()
+        } else {
+            0f
+        }
+
+        if (progresoHidratacion < 0f) {
+            progresoHidratacion = 0f
+        }
+
+        if (progresoHidratacion > 1f) {
+            progresoHidratacion = 1f
+        }
 
         val recomendacion = when {
             imc < 18.5 ->
@@ -148,10 +197,14 @@ class BodyFitViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(
             imc = imc,
             categoria = categoria,
+            interpretacionImc = interpretacionImc,
+            progresoImc = progresoImc.toFloat(),
             pesoMinimo = pesoMinimo,
             pesoMaximo = pesoMaximo,
             aguaLitros = aguaLitros,
             vasosAgua = vasosAgua,
+            vasosFaltantes = vasosFaltantes,
+            progresoHidratacion = progresoHidratacion,
             recomendacion = recomendacion,
             error = null
         )

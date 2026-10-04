@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.calculadorademasa.model.BodyFitUiState
 import com.example.calculadorademasa.ui.theme.AzulClaro
 import com.example.calculadorademasa.viewmodel.BodyFitViewModel
 
@@ -63,7 +65,10 @@ fun BodyFitScreen(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 20.dp),
+                .padding(
+                    horizontal = 24.dp,
+                    vertical = 20.dp
+                ),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (estado.pantallaActual == "calcular") {
@@ -90,7 +95,7 @@ fun BodyFitScreen(
 
 @Composable
 fun PantallaCalcular(
-    estado: com.example.calculadorademasa.model.BodyFitUiState,
+    estado: BodyFitUiState,
     viewModel: BodyFitViewModel
 ) {
     EncabezadoCalculadora()
@@ -365,10 +370,49 @@ fun SelectorActividad(
     actividadSeleccionada: String,
     alSeleccionar: (String) -> Unit
 ) {
-    Row(Modifier.fillMaxWidth()) {
-        OpcionSeleccion("Sedentario", actividadSeleccionada == "Sedentario", { alSeleccionar("Sedentario") }, Modifier.weight(1f))
-        OpcionSeleccion("Moderado", actividadSeleccionada == "Moderado", { alSeleccionar("Moderado") }, Modifier.weight(1f))
-        OpcionSeleccion("Activo", actividadSeleccionada == "Activo", { alSeleccionar("Activo") }, Modifier.weight(1f))
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Nivel de actividad",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextoPrincipal
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OpcionSeleccion(
+                texto = "Sedentario",
+                seleccionado = actividadSeleccionada == "Sedentario",
+                alSeleccionar = {
+                    alSeleccionar("Sedentario")
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            OpcionSeleccion(
+                texto = "Moderado",
+                seleccionado = actividadSeleccionada == "Moderado",
+                alSeleccionar = {
+                    alSeleccionar("Moderado")
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            OpcionSeleccion(
+                texto = "Activo",
+                seleccionado = actividadSeleccionada == "Activo",
+                alSeleccionar = {
+                    alSeleccionar("Activo")
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
@@ -599,7 +643,7 @@ fun FilaResultado(
 
 @Composable
 fun PantallaPerfil(
-    estado: com.example.calculadorademasa.model.BodyFitUiState,
+    estado: BodyFitUiState,
     viewModel: BodyFitViewModel
 ) {
     Column(
@@ -675,7 +719,7 @@ fun PantallaPerfil(
 
 @Composable
 fun TarjetaPerfil(
-    estado: com.example.calculadorademasa.model.BodyFitUiState
+    estado: BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -700,11 +744,42 @@ fun TarjetaPerfil(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FilaPerfil("Edad", if (estado.edad == "") "--" else "${estado.edad} años")
-            FilaPerfil("Sexo", estado.sexo)
-            FilaPerfil("Peso", if (estado.peso == "") "--" else "${estado.peso} kg")
-            FilaPerfil("Altura", if (estado.altura == "") "--" else "${estado.altura} cm")
-            FilaPerfil("Actividad", estado.nivelActividad)
+            FilaPerfil(
+                titulo = "Edad",
+                valor = if (estado.edad == "") {
+                    "--"
+                } else {
+                    "${estado.edad} años"
+                }
+            )
+
+            FilaPerfil(
+                titulo = "Sexo",
+                valor = estado.sexo
+            )
+
+            FilaPerfil(
+                titulo = "Peso",
+                valor = if (estado.peso == "") {
+                    "--"
+                } else {
+                    "${estado.peso} kg"
+                }
+            )
+
+            FilaPerfil(
+                titulo = "Altura",
+                valor = if (estado.altura == "") {
+                    "--"
+                } else {
+                    "${estado.altura} cm"
+                }
+            )
+
+            FilaPerfil(
+                titulo = "Actividad",
+                valor = estado.nivelActividad
+            )
         }
     }
 }
@@ -737,7 +812,7 @@ fun FilaPerfil(
 
 @Composable
 fun TarjetaEstado(
-    estado: com.example.calculadorademasa.model.BodyFitUiState
+    estado: BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -756,9 +831,18 @@ fun TarjetaEstado(
                 color = AzulBodyFit
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "Interpretación de tu resultado de IMC",
+                fontSize = 13.sp,
+                color = TextoSecundario
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             if (estado.imc != null) {
+
                 Text(
                     text = "IMC",
                     fontSize = 14.sp,
@@ -774,11 +858,68 @@ fun TarjetaEstado(
 
                 Text(
                     text = estado.categoria,
-                    fontSize = 16.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = AzulBodyFit
                 )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = estado.interpretacionImc,
+                    fontSize = 14.sp,
+                    color = TextoSecundario,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Referencia del IMC",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextoPrincipal
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                BarraProgreso(
+                    progreso = estado.progresoImc
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Bajo",
+                        fontSize = 11.sp,
+                        color = TextoSecundario
+                    )
+
+                    Text(
+                        text = "Normal",
+                        fontSize = 11.sp,
+                        color = TextoSecundario
+                    )
+
+                    Text(
+                        text = "Sobrepeso",
+                        fontSize = 11.sp,
+                        color = TextoSecundario
+                    )
+
+                    Text(
+                        text = "Obesidad",
+                        fontSize = 11.sp,
+                        color = TextoSecundario
+                    )
+                }
+
             } else {
+
                 Text(
                     text = "Aún no has realizado tu cálculo.",
                     color = TextoSecundario,
@@ -790,8 +931,22 @@ fun TarjetaEstado(
 }
 
 @Composable
+fun BarraProgreso(
+    progreso: Float
+) {
+    LinearProgressIndicator(
+        progress = { progreso },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(10.dp),
+        color = AzulBodyFit,
+        trackColor = Blanco
+    )
+}
+
+@Composable
 fun TarjetaHidratacion(
-    estado: com.example.calculadorademasa.model.BodyFitUiState
+    estado: BodyFitUiState
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -821,13 +976,40 @@ fun TarjetaHidratacion(
             Spacer(modifier = Modifier.height(8.dp))
 
             if (estado.vasosAgua != null) {
+
                 Text(
                     text = "Estimación BodyFit: ${estado.vasosAgua} vasos al día",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextoPrincipal
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                BarraProgreso(
+                    progreso = estado.progresoHidratacion
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (estado.vasosFaltantes > 0) {
+                    Text(
+                        text = "Te faltan aproximadamente ${estado.vasosFaltantes} vasos para alcanzar la estimación.",
+                        fontSize = 13.sp,
+                        color = TextoSecundario,
+                        lineHeight = 18.sp
+                    )
+                } else {
+                    Text(
+                        text = "Has alcanzado la estimación diaria de BodyFit.",
+                        fontSize = 13.sp,
+                        color = TextoSecundario,
+                        lineHeight = 18.sp
+                    )
+                }
+
             } else {
+
                 Text(
                     text = "Realiza el cálculo para obtener una estimación.",
                     fontSize = 14.sp,
@@ -902,7 +1084,10 @@ fun BarraNavegacion(
         modifier = Modifier
             .fillMaxWidth()
             .background(Blanco)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(
+                horizontal = 16.dp,
+                vertical = 10.dp
+            ),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         BotonNavegacion(
